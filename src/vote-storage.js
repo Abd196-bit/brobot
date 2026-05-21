@@ -1,8 +1,6 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
-
-const dataDirectory = path.join(process.cwd(), "data");
-const votesFile = path.join(dataDirectory, "votes.txt");
+import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { config } from "./config.js";
 
 function voteToRecord(messageId, vote) {
   return {
@@ -10,34 +8,32 @@ function voteToRecord(messageId, vote) {
     theme: vote.theme,
     suggestedBy: vote.suggestedBy,
     createdAt: vote.createdAt,
-    startDate: vote.startsAtLabel ?? "Now",
-    endDate: vote.endsAtLabel ?? "No end date",
+    startDate: vote.startsAtLabel,
+    endDate: vote.endsAtLabel,
     startsAt: vote.startsAt,
     endsAt: vote.endsAt,
     aye: [...vote.aye],
     nay: [...vote.nay],
-    noOpinion: [...vote.noOpinion]
+    noOpinion: [...vote.noOpinion],
+    updatedAt: new Date().toISOString()
   };
 }
 
-async function readVoteRecords() {
-  try {
-    const file = await readFile(votesFile, "utf8");
-    return JSON.parse(file);
-  } catch (error) {
-    if (error.code === "ENOENT") {
-      return {};
-    }
-
-    throw error;
+function getDatabase() {
+  if (!getApps().length) {
+    initializeApp({
+      credential: cert({
+        projectId: config.firebase.projectId,
+        clientEmail: config.firebase.clientEmail,
+        privateKey: config.firebase.privateKey
+      })
+    });
   }
+
+  return getFirestore();
 }
 
 export async function saveVote(messageId, vote) {
-  await mkdir(dataDirectory, { recursive: true });
-
-  const records = await readVoteRecords();
-  records[messageId] = voteToRecord(messageId, vote);
-
-  await writeFile(votesFile, `${JSON.stringify(records, null, 2)}\n`, "utf8");
+  const database = getDatabase();
+  await database.collection("votes").doc(messageId).set(voteToRecord(messageId, vote));
 }

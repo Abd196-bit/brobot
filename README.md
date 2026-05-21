@@ -22,6 +22,7 @@ A small Discord bot using `discord.js`.
    - `DISCORD_CLIENT_ID`: application ID from the Discord Developer Portal
    - `DISCORD_GUILD_ID`: server ID for quick slash-command testing
    - `VOTE_CHANNEL_ID`: channel ID where Bros Jam votes should be posted
+   - `FIREBASE_SERVICE_ACCOUNT_PATH`: local path to your Firebase service account JSON, usually `firebase-service-account.json`
 
 4. Deploy slash commands to your test server:
 
@@ -54,15 +55,9 @@ Every `/vote` uses that period. Button clicks only count from `from` until `to`.
 
 ## Vote Storage
 
-Votes are saved to:
+Votes are saved in Firebase Firestore, in the `votes` collection.
 
-```text
-data/votes.txt
-```
-
-The file is JSON inside a `.txt` file. It is ignored by git so live vote data does not get pushed publicly.
-
-Each saved vote includes:
+Each saved vote document uses the Discord message ID as its document ID and includes:
 
 ```json
 {
@@ -80,13 +75,36 @@ Each saved vote includes:
 }
 ```
 
-On Render, add a persistent disk mounted at:
+`vote-period.txt` is still a text file and only controls when voting is open.
 
-```text
-/opt/render/project/src/data
-```
+## Firebase Setup
 
-Without a persistent disk, Render can lose `data/votes.txt` during redeploys or restarts.
+1. Open [Firebase Console](https://console.firebase.google.com).
+2. Create or select a project.
+3. Go to **Build** -> **Firestore Database**.
+4. Create a Firestore database.
+5. Go to **Project settings** -> **Service accounts**.
+6. Click **Generate new private key**.
+7. In the downloaded JSON file, use:
+   - `project_id` as `FIREBASE_PROJECT_ID`
+   - `client_email` as `FIREBASE_CLIENT_EMAIL`
+   - `private_key` as `FIREBASE_PRIVATE_KEY`
+
+Do not commit the downloaded JSON file to GitHub.
+
+For local use:
+
+1. Copy `firebase-service-account.example.json` to `firebase-service-account.json`.
+2. Paste your new regenerated Firebase service account JSON into `firebase-service-account.json`.
+3. Keep this in `.env`:
+
+   ```env
+   FIREBASE_SERVICE_ACCOUNT_PATH=firebase-service-account.json
+   ```
+
+`firebase-service-account.json` is ignored by git.
+
+For Render, use environment variables instead of uploading a JSON file:
 
 ## Render Hosting
 
@@ -106,6 +124,9 @@ Use Render as a long-running web service.
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   FIREBASE_PROJECT_ID=your_firebase_project_id
+   FIREBASE_CLIENT_EMAIL=your_service_account_email
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
    ```
 
 7. Deploy the service.
@@ -148,6 +169,9 @@ Environment variables:
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   FIREBASE_PROJECT_ID=your_firebase_project_id
+   FIREBASE_CLIENT_EMAIL=your_service_account_email
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
    ```
 
 ## Discord Developer Portal Checklist
