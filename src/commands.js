@@ -7,16 +7,26 @@ import {
   SlashCommandBuilder
 } from "discord.js";
 import { config } from "./config.js";
+import { formatVoteTime, getVotePeriod } from "./vote-period.js";
+import { saveVote } from "./vote-storage.js";
 
 export const voteState = new Map();
 
 const voteButtonPrefix = "bros-jam-vote";
 
 function createVoteEmbed(vote) {
+  const lines = [`Suggested by ${vote.suggestedBy} • ${vote.createdAt}`];
+
+  if (vote.startsAt || vote.endsAt) {
+    lines.push("");
+    lines.push(`Voting opens: ${vote.startsAtLabel ?? "Now"}`);
+    lines.push(`Voting closes: ${vote.endsAtLabel ?? "No close time"}`);
+  }
+
   return new EmbedBuilder()
     .setColor(0x2f3136)
     .setTitle(vote.theme)
-    .setDescription(`Suggested by ${vote.suggestedBy} • ${vote.createdAt}`);
+    .setDescription(lines.join("\n"));
 }
 
 function createVoteComponents(vote) {
@@ -73,6 +83,24 @@ export async function handleVoteButton(interaction) {
     return true;
   }
 
+  const now = Date.now();
+
+  if (vote.startsAt && now < vote.startsAt) {
+    await interaction.reply({
+      content: `Voting is not open yet. It opens at ${vote.startsAtLabel}.`,
+      flags: MessageFlags.Ephemeral
+    });
+    return true;
+  }
+
+  if (vote.endsAt && now > vote.endsAt) {
+    await interaction.reply({
+      content: `Voting is closed. It ended at ${vote.endsAtLabel}.`,
+      flags: MessageFlags.Ephemeral
+    });
+    return true;
+  }
+
   vote.aye.delete(interaction.user.id);
   vote.nay.delete(interaction.user.id);
   vote.noOpinion.delete(interaction.user.id);
@@ -84,6 +112,7 @@ export async function handleVoteButton(interaction) {
   }
 
   await interaction.update(createVoteMessage(vote));
+  await saveVote(interaction.message.id, vote);
   return true;
 }
 
@@ -106,7 +135,7 @@ export const commands = [
         content: [
           "**Available commands**",
           "`/ping` - Check whether the bot is online.",
-          "`/vote theme:<theme>` - Suggest a Bros Jam theme with Aye/Nay/No opinion buttons.",
+          "`/vote theme:<theme>` - Suggest a Bros Jam theme using the period in vote-period.txt.",
           "`/help` - Show this command list."
         ].join("\n"),
         flags: MessageFlags.Ephemeral
@@ -127,6 +156,15 @@ export const commands = [
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       const theme = interaction.options.getString("theme", true);
+      let votePeriod;
+
+      try {
+        votePeriod = await getVotePeriod();
+      } catch (error) {
+        await interaction.editReply(error.message);
+        return;
+      }
+
       const suggestedBy =
         interaction.member?.displayName ??
         interaction.user.globalName ??
@@ -134,14 +172,8 @@ export const commands = [
       const vote = {
         theme,
         suggestedBy,
-        createdAt: new Date().toLocaleString("en-US", {
-          month: "2-digit",
-          day: "2-digit",
-          year: "2-digit",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true
-        }),
+        createdAt: formatVoteTime(new Date()),
+        ...votePeriod,
         aye: new Set(),
         nay: new Set(),
         noOpinion: new Set()
@@ -169,6 +201,7 @@ export const commands = [
 
       const message = await voteChannel.send(createVoteMessage(vote));
       voteState.set(message.id, vote);
+      await saveVote(message.id, vote);
       await interaction.editReply(`Posted the Bros Jam vote in ${voteChannel}.`);
     }
   }

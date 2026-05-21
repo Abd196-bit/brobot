@@ -38,8 +38,55 @@ A small Discord bot using `discord.js`.
 ## Commands
 
 - `/ping`: replies with bot latency
-- `/vote theme:<theme>`: posts a Bros Jam theme suggestion in the vote channel with `Aye!`, `Nay!`, and `No opinion.` buttons
+- `/vote theme:<theme>`: posts a Bros Jam theme vote using the voting period from `vote-period.txt`
 - `/help`: lists available commands
+
+## Voting Period
+
+Users do not type the voting times. Edit [vote-period.txt](/Users/folder1/Desktop/bro bot/vote-period.txt) instead:
+
+```text
+from=2026-05-21 18:00
+to=2026-05-21 20:00
+```
+
+Every `/vote` uses that period. Button clicks only count from `from` until `to`.
+
+## Vote Storage
+
+Votes are saved to:
+
+```text
+data/votes.txt
+```
+
+The file is JSON inside a `.txt` file. It is ignored by git so live vote data does not get pushed publicly.
+
+Each saved vote includes:
+
+```json
+{
+  "messageId": "discord_message_id",
+  "theme": "Baggage",
+  "suggestedBy": "Simon",
+  "createdAt": "05/21/26, 5:55 PM",
+  "startDate": "05/21/26, 6:00 PM",
+  "endDate": "05/21/26, 8:00 PM",
+  "startsAt": 1779386400000,
+  "endsAt": 1779393600000,
+  "aye": ["user_id"],
+  "nay": [],
+  "noOpinion": []
+}
+```
+
+On Render, add a persistent disk mounted at:
+
+```text
+/opt/render/project/src/data
+```
+
+Without a persistent disk, Render can lose `data/votes.txt` during redeploys or restarts.
 
 ## Render Hosting
 
@@ -111,4 +158,6 @@ Create an application at <https://discord.com/developers/applications>, add a bo
 - `applications.commands`
 
 For this starter bot, the bot permission integer can be `0` because it only responds to slash commands.
+# brobot
+# brobot
 # brobot
