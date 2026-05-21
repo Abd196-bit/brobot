@@ -41,17 +41,18 @@ A small Discord bot using `discord.js`.
 - `/vote theme:<theme>`: posts a Bros Jam theme suggestion in the vote channel with `Aye!`, `Nay!`, and `No opinion.` buttons
 - `/help`: lists available commands
 
-## 24/7 Hosting
+## Render Hosting
 
 Do not host this gateway bot on Vercel. Vercel serverless functions stop after handling requests, but this bot must keep a Discord WebSocket connection open.
 
-Use a long-running Node host instead, such as Railway, Render, Fly.io, or a VPS.
-
-Recommended: Railway.
+Use Render as a long-running web service.
 
 1. Push this project to GitHub.
-2. Open Railway and create a new project from the GitHub repo.
-3. Set these environment variables in the host dashboard:
+2. Open [Render](https://render.com).
+3. Click **New** -> **Blueprint**.
+4. Connect the GitHub repo.
+5. Render will read `render.yaml`.
+6. In Render, set these environment variables:
 
    ```env
    DISCORD_TOKEN=your_new_regenerated_token
@@ -60,21 +61,47 @@ Recommended: Railway.
    VOTE_CHANNEL_ID=1507009214416162977
    ```
 
-4. Railway will use `railway.json`. If it asks for a start command, use:
-
-   ```bash
-   npm start
-   ```
-
-5. Open the Railway service shell or run locally once:
+7. Deploy the service.
+8. Run this once from your local machine after the env vars are correct:
 
    ```bash
    npm run deploy
    ```
 
-The bot also serves a health endpoint at `/health` for hosts that need an HTTP check.
+Render settings if creating the service manually:
 
-Render can also work with `render.yaml`, but free web services may sleep. Use a paid always-on instance if you want the bot online 24/7.
+- Service type: **Web Service**
+- Runtime: **Node**
+- Build command:
+
+  ```bash
+  npm ci
+  ```
+
+- Start command:
+
+  ```bash
+  npm start
+  ```
+
+- Health check path:
+
+  ```text
+  /health
+  ```
+
+The bot serves `/health` so Render can keep track of the running service.
+
+Use a paid always-on Render plan if you want the bot online 24/7. Free web services can sleep.
+
+Environment variables:
+
+   ```env
+   DISCORD_TOKEN=your_new_regenerated_token
+   DISCORD_CLIENT_ID=1506997342518378677
+   DISCORD_GUILD_ID=1506892029039345815
+   VOTE_CHANNEL_ID=1507009214416162977
+   ```
 
 ## Discord Developer Portal Checklist
 

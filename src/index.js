@@ -1,0 +1,87 @@
+import http from "node:http";
+import { Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
+import { commandMap, handleVoteButton } from "./commands.js";
+import { config } from "./config.js";
+
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds]
+});
+
+client.once(Events.ClientReady, (readyClient) => {
+  console.log(`Logged in as ${readyClient.user.tag}`);
+});
+
+const server = http.createServer((request, response) => {
+  if (request.url === "/health") {
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify({
+      ok: true,
+      botReady: client.isReady(),
+      uptime: process.uptime()
+    }));
+    return;
+  }
+
+  response.writeHead(200, { "Content-Type": "text/plain" });
+  response.end("Bro Bot is running.");
+});
+
+const port = process.env.PORT ?? 3000;
+server.listen(port, () => {
+  console.log(`Health server listening on port ${port}`);
+});
+
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isButton()) {
+    try {
+      await handleVoteButton(interaction);
+    } catch (error) {
+      console.error(`Error while handling button ${interaction.customId}:`, error);
+
+      const response = {
+        content: "Something went wrong while recording that vote.",
+        flags: MessageFlags.Ephemeral
+      };
+
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(response);
+      } else {
+        await interaction.reply(response);
+      }
+    }
+    return;
+  }
+
+  if (!interaction.isChatInputCommand()) {
+    return;
+  }
+
+  const command = commandMap.get(interaction.commandName);
+
+  if (!command) {
+    await interaction.reply({
+      content: "Unknown command.",
+      flags: MessageFlags.Ephemeral
+    });
+    return;
+  }
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(`Error while running /${interaction.commandName}:`, error);
+
+    const response = {
+      content: "Something went wrong while running that command.",
+      flags: MessageFlags.Ephemeral
+    };
+
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(response);
+    } else {
+      await interaction.reply(response);
+    }
+  }
+});
+
+client.login(config.token);

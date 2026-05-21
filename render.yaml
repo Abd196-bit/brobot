@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: bro-bot
+    runtime: node
+    plan: starter
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_GUILD_ID
+        sync: false
+      - key: VOTE_CHANNEL_ID
+        sync: false
