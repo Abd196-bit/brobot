@@ -106,6 +106,9 @@ For local use:
 
 For Render, use environment variables instead of uploading a JSON file:
 
+- Recommended: paste the entire downloaded service account JSON into `FIREBASE_SERVICE_ACCOUNT_JSON`.
+- Alternative: set `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` separately.
+
 ## Render Hosting
 
 Do not host this gateway bot on Vercel. Vercel serverless functions stop after handling requests, but this bot must keep a Discord WebSocket connection open.
@@ -124,6 +127,12 @@ Use Render as a long-running web service.
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+   ```
+
+   Or set the Firebase fields separately:
+
+   ```env
    FIREBASE_PROJECT_ID=your_firebase_project_id
    FIREBASE_CLIENT_EMAIL=your_service_account_email
    FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
@@ -169,6 +178,12 @@ Environment variables:
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+   ```
+
+Or set the Firebase fields separately:
+
+   ```env
    FIREBASE_PROJECT_ID=your_firebase_project_id
    FIREBASE_CLIENT_EMAIL=your_service_account_email
    FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
@@ -182,6 +197,7 @@ Create an application at <https://discord.com/developers/applications>, add a bo
 - `applications.commands`
 
 For this starter bot, the bot permission integer can be `0` because it only responds to slash commands.
+# brobot
 # brobot
 # brobot
 # brobot
