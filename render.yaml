@@ -16,6 +16,8 @@ services:
         sync: false
       - key: VOTE_CHANNEL_ID
         sync: false
+      - key: WELCOME_CHANNEL_ID
+        sync: false
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL

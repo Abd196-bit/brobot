@@ -6,7 +6,8 @@ const requiredEnv = [
   "DISCORD_TOKEN",
   "DISCORD_CLIENT_ID",
   "DISCORD_GUILD_ID",
-  "VOTE_CHANNEL_ID"
+  "VOTE_CHANNEL_ID",
+  "WELCOME_CHANNEL_ID"
 ];
 
 for (const name of requiredEnv) {
@@ -61,5 +62,6 @@ export const config = {
   clientId: process.env.DISCORD_CLIENT_ID,
   guildId: process.env.DISCORD_GUILD_ID,
   voteChannelId: process.env.VOTE_CHANNEL_ID,
+  welcomeChannelId: process.env.WELCOME_CHANNEL_ID,
   firebase: loadFirebaseConfig()
 };

@@ -4,8 +4,24 @@ import { commandMap, handleVoteButton } from "./commands.js";
 import { config } from "./config.js";
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers
+  ]
 });
+
+const welcomeMessages = [
+  "hi {user}, hope you brought pizza.",
+  "yo {user}, the server just got better.",
+  "welcome {user}, excellent choice showing up here.",
+  "hey {user}, your timing is suspiciously perfect.",
+  "hi {user}, grab a seat and pretend you know what's going on."
+];
+
+function createWelcomeMessage(member) {
+  const message = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+  return message.replace("{user}", `<@${member.id}>`);
+}
 
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
@@ -29,6 +45,25 @@ const server = http.createServer((request, response) => {
 const port = process.env.PORT ?? 3000;
 server.listen(port, () => {
   console.log(`Health server listening on port ${port}`);
+});
+
+client.on(Events.GuildMemberAdd, async (member) => {
+  if (member.guild.id !== config.guildId) {
+    return;
+  }
+
+  try {
+    const channel = await client.channels.fetch(config.welcomeChannelId);
+
+    if (!channel?.isTextBased()) {
+      console.error(`Welcome channel ${config.welcomeChannelId} is not a text channel or could not be found.`);
+      return;
+    }
+
+    await channel.send(createWelcomeMessage(member));
+  } catch (error) {
+    console.error(`Error while sending welcome message for ${member.id}:`, error);
+  }
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {

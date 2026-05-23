@@ -22,6 +22,7 @@ A small Discord bot using `discord.js`.
    - `DISCORD_CLIENT_ID`: application ID from the Discord Developer Portal
    - `DISCORD_GUILD_ID`: server ID for quick slash-command testing
    - `VOTE_CHANNEL_ID`: channel ID where Bros Jam votes should be posted
+   - `WELCOME_CHANNEL_ID`: channel ID where new member welcome messages should be posted
    - `FIREBASE_SERVICE_ACCOUNT_PATH`: local path to your Firebase service account JSON, usually `firebase-service-account.json`
 
 4. Deploy slash commands to your test server:
@@ -42,6 +43,8 @@ A small Discord bot using `discord.js`.
 - `/vote theme:<theme>`: posts a Bros Jam theme vote using the voting period from `vote-period.txt`
 - `/help`: lists available commands
 
+Each Discord user can suggest only one theme. Users can still change their vote on a theme as many times as they want; clicking `Aye!`, `Nay!`, or `No opinion.` moves their user ID between those fields.
+
 ## Voting Period
 
 Users do not type the voting times. Edit [vote-period.txt](/Users/folder1/Desktop/bro bot/vote-period.txt) instead:
@@ -55,7 +58,7 @@ Every `/vote` uses that period. Button clicks only count from `from` until `to`.
 
 ## Vote Storage
 
-Votes are saved in Firebase Firestore, in the `votes` collection.
+Votes are saved in Firebase Firestore, in the `votes` collection. Each theme suggestion is one Firestore document. Button clicks edit that same document instead of creating separate vote documents.
 
 Each saved vote document uses the Discord message ID as its document ID and includes:
 
@@ -63,6 +66,7 @@ Each saved vote document uses the Discord message ID as its document ID and incl
 {
   "messageId": "discord_message_id",
   "theme": "Baggage",
+  "suggestedById": "suggesting_user_id",
   "suggestedBy": "Simon",
   "createdAt": "05/21/26, 5:55 PM",
   "startDate": "05/21/26, 6:00 PM",
@@ -127,6 +131,7 @@ Use Render as a long-running web service.
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   WELCOME_CHANNEL_ID=your_welcome_channel_id
    FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
    ```
 
@@ -178,6 +183,7 @@ Environment variables:
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   WELCOME_CHANNEL_ID=your_welcome_channel_id
    FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
    ```
 
@@ -197,6 +203,8 @@ Create an application at <https://discord.com/developers/applications>, add a bo
 - `applications.commands`
 
 For this starter bot, the bot permission integer can be `0` because it only responds to slash commands.
+
+Enable **Server Members Intent** under the bot's privileged gateway intents so welcome messages can fire when a new member joins.
 # brobot
 # brobot
 # brobot

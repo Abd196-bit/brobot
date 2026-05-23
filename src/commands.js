@@ -8,7 +8,7 @@ import {
 } from "discord.js";
 import { config } from "./config.js";
 import { formatVoteTime, getVotePeriod } from "./vote-period.js";
-import { saveVote } from "./vote-storage.js";
+import { findThemeSuggestionByUser, loadVote, saveVote } from "./vote-storage.js";
 
 export const voteState = new Map();
 
@@ -65,7 +65,15 @@ export async function handleVoteButton(interaction) {
   }
 
   const [, choice] = interaction.customId.split(":");
-  const vote = voteState.get(interaction.message.id);
+  let vote = voteState.get(interaction.message.id);
+
+  if (!vote) {
+    vote = await loadVote(interaction.message.id);
+
+    if (vote) {
+      voteState.set(interaction.message.id, vote);
+    }
+  }
 
   if (!vote) {
     await interaction.reply({
@@ -156,6 +164,15 @@ export const commands = [
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
       const theme = interaction.options.getString("theme", true);
+      const existingSuggestion = await findThemeSuggestionByUser(interaction.user.id);
+
+      if (existingSuggestion) {
+        await interaction.editReply(
+          `You already suggested **${existingSuggestion.theme}**. Each user can suggest only one theme.`
+        );
+        return;
+      }
+
       let votePeriod;
 
       try {
@@ -171,6 +188,7 @@ export const commands = [
         interaction.user.username;
       const vote = {
         theme,
+        suggestedById: interaction.user.id,
         suggestedBy,
         createdAt: formatVoteTime(new Date()),
         ...votePeriod,
