@@ -10,6 +10,10 @@ if (config.enableWelcomeMessages) {
   intents.push(GatewayIntentBits.GuildMembers);
 }
 
+if (config.musicVoiceChannelId) {
+  intents.push(GatewayIntentBits.GuildVoiceStates);
+}
+
 const client = new Client({
   intents
 });

@@ -248,6 +248,7 @@ export const commands = [
           "`/ping` - Check whether the bot is online.",
           "`/vote theme:<theme>` - Suggest a Bros Jam theme using the period in vote-period.txt.",
           "`/tutorial topic:<topic>` - Get a quick Bros Jam tutorial.",
+          "`/joinmusic` - Show the background music voice channel.",
           "`/clear message:<amount>` - Delete up to 100 recent messages from this channel. Admins only.",
           "`/server` - Show basic server info.",
           "`/user member:<member>` - Show user info.",
@@ -268,6 +269,26 @@ export const commands = [
     async execute(interaction) {
       await interaction.reply({
         embeds: [createServerEmbed(interaction.guild)]
+      });
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("joinmusic")
+      .setDescription("Show the background music voice channel.")
+      .setDMPermission(false),
+    async execute(interaction) {
+      if (!config.musicVoiceChannelId) {
+        await interaction.reply({
+          content: "The music voice channel is not configured yet.",
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
+
+      await interaction.reply({
+        content: `Join <#${config.musicVoiceChannelId}> to listen to the background music.`,
+        flags: MessageFlags.Ephemeral
       });
     }
   },

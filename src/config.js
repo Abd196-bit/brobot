@@ -17,16 +17,6 @@ for (const name of requiredEnv) {
 
 let firebaseConfig;
 
-function parseVolume(value) {
-  const volume = Number.parseFloat(value ?? "0.5");
-
-  if (Number.isNaN(volume)) {
-    return 0.5;
-  }
-
-  return Math.min(Math.max(volume, 0), 1);
-}
-
 function loadFirebaseConfig() {
   if (firebaseConfig) {
     return firebaseConfig;
@@ -83,8 +73,8 @@ export const config = {
   enableWelcomeMessages: process.env.ENABLE_WELCOME_MESSAGES === "true",
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID,
   musicVoiceChannelId: process.env.MUSIC_VOICE_CHANNEL_ID,
-  musicFilePath: process.env.MUSIC_FILE_PATH,
-  musicVolume: parseVolume(process.env.MUSIC_VOLUME),
+  musicFilePath: path.join(process.cwd(), "My Ordinary Life-The Living Tombstone.mp3"),
+  musicVolume: 0.5,
   get firebase() {
     return loadFirebaseConfig();
   }

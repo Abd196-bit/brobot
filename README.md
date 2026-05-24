@@ -46,6 +46,7 @@ A small Discord bot using `discord.js`.
 - `/ping`: replies with bot latency
 - `/vote theme:<theme>`: posts a Bros Jam theme vote using the voting period from `vote-period.txt`
 - `/tutorial topic:<topic>`: shows a quick Bros Jam tutorial. Topics are `Overview`, `Theme voting`, `Building`, and `Submitting`
+- `/joinmusic`: shows the voice channel where users can listen to background music
 - `/clear message:<amount>`: deletes up to 100 recent messages from the channel where it is used. Admins only
 - `/server`: shows basic server info
 - `/user member:<member>`: shows user info
