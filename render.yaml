@@ -16,8 +16,16 @@ services:
         sync: false
       - key: VOTE_CHANNEL_ID
         sync: false
+      - key: ENABLE_WELCOME_MESSAGES
+        value: "false"
       - key: WELCOME_CHANNEL_ID
         sync: false
+      - key: MUSIC_VOICE_CHANNEL_ID
+        sync: false
+      - key: MUSIC_FILE_PATH
+        sync: false
+      - key: MUSIC_VOLUME
+        value: "0.5"
       - key: FIREBASE_PROJECT_ID
         sync: false
       - key: FIREBASE_CLIENT_EMAIL

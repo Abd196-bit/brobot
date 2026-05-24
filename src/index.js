@@ -1,5 +1,6 @@
 import http from "node:http";
 import { Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
+import { startBackgroundMusic } from "./background-music.js";
 import { commandMap, handleVoteButton } from "./commands.js";
 import { config } from "./config.js";
 
@@ -26,8 +27,14 @@ function createWelcomeMessage(member) {
   return message.replace("{user}", `<@${member.id}>`);
 }
 
-client.once(Events.ClientReady, (readyClient) => {
+client.once(Events.ClientReady, async (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}`);
+
+  try {
+    await startBackgroundMusic(readyClient);
+  } catch (error) {
+    console.error("Failed to start background music:", error);
+  }
 });
 
 const server = http.createServer((request, response) => {

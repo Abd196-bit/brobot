@@ -24,6 +24,9 @@ A small Discord bot using `discord.js`.
    - `VOTE_CHANNEL_ID`: channel ID where Bros Jam votes should be posted
    - `ENABLE_WELCOME_MESSAGES`: set to `true` only if you enabled Discord's Server Members Intent
    - `WELCOME_CHANNEL_ID`: optional channel ID where new member welcome messages should be posted
+   - `MUSIC_VOICE_CHANNEL_ID`: optional voice channel ID where the bot should loop background music
+   - `MUSIC_FILE_PATH`: optional absolute path to an audio file the bot is allowed to play
+   - `MUSIC_VOLUME`: optional music volume. Use `0.5` for 50%
    - `FIREBASE_SERVICE_ACCOUNT_PATH`: local path to your Firebase service account JSON, usually `firebase-service-account.json`
 
 4. Deploy slash commands to your test server:
@@ -52,6 +55,20 @@ A small Discord bot using `discord.js`.
 - `/help`: lists available commands
 
 Each Discord user can suggest only one theme. Users can still change their vote on a theme as many times as they want; clicking `Aye!`, `Nay!`, or `No opinion.` moves their user ID between those fields.
+
+## Background Music
+
+Discord bots cannot play audio when someone only opens or views a server. The bot must join a voice channel and play audio there.
+
+Set these values to loop background music at 50% volume:
+
+```env
+MUSIC_VOICE_CHANNEL_ID=your_voice_channel_id
+MUSIC_FILE_PATH=/absolute/path/to/audio.mp3
+MUSIC_VOLUME=0.5
+```
+
+The bot needs **Connect** and **Speak** permissions in that voice channel. Use an audio file you have the right to play.
 
 ## Voting Period
 
@@ -141,6 +158,9 @@ Use Render as a long-running web service.
    VOTE_CHANNEL_ID=1507009214416162977
    ENABLE_WELCOME_MESSAGES=false
    WELCOME_CHANNEL_ID=your_welcome_channel_id
+   MUSIC_VOICE_CHANNEL_ID=your_voice_channel_id
+   MUSIC_FILE_PATH=/absolute/path/to/audio.mp3
+   MUSIC_VOLUME=0.5
    FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
    ```
 
@@ -213,6 +233,7 @@ Create an application at <https://discord.com/developers/applications>, add a bo
 - `applications.commands`
 
 The bot needs the **Manage Messages** permission for `/clear`.
+The bot needs **Connect** and **Speak** permissions for background music.
 
 Only enable `ENABLE_WELCOME_MESSAGES=true` after enabling **Server Members Intent** under the bot's privileged gateway intents in the Discord Developer Portal. Otherwise Discord rejects the bot with `Used disallowed intents`.
 # brobot

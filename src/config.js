@@ -17,6 +17,16 @@ for (const name of requiredEnv) {
 
 let firebaseConfig;
 
+function parseVolume(value) {
+  const volume = Number.parseFloat(value ?? "0.5");
+
+  if (Number.isNaN(volume)) {
+    return 0.5;
+  }
+
+  return Math.min(Math.max(volume, 0), 1);
+}
+
 function loadFirebaseConfig() {
   if (firebaseConfig) {
     return firebaseConfig;
@@ -72,6 +82,9 @@ export const config = {
   voteChannelId: process.env.VOTE_CHANNEL_ID,
   enableWelcomeMessages: process.env.ENABLE_WELCOME_MESSAGES === "true",
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID,
+  musicVoiceChannelId: process.env.MUSIC_VOICE_CHANNEL_ID,
+  musicFilePath: process.env.MUSIC_FILE_PATH,
+  musicVolume: parseVolume(process.env.MUSIC_VOLUME),
   get firebase() {
     return loadFirebaseConfig();
   }
