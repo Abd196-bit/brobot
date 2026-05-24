@@ -15,15 +15,22 @@ for (const name of requiredEnv) {
   }
 }
 
+let firebaseConfig;
+
 function loadFirebaseConfig() {
+  if (firebaseConfig) {
+    return firebaseConfig;
+  }
+
   if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 
-    return {
+    firebaseConfig = {
       projectId: serviceAccount.project_id,
       clientEmail: serviceAccount.client_email,
       privateKey: serviceAccount.private_key
     };
+    return firebaseConfig;
   }
 
   if (
@@ -31,11 +38,12 @@ function loadFirebaseConfig() {
     process.env.FIREBASE_CLIENT_EMAIL &&
     process.env.FIREBASE_PRIVATE_KEY
   ) {
-    return {
+    firebaseConfig = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
     };
+    return firebaseConfig;
   }
 
   const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH ??
@@ -49,11 +57,12 @@ function loadFirebaseConfig() {
 
   const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
 
-  return {
+  firebaseConfig = {
     projectId: serviceAccount.project_id,
     clientEmail: serviceAccount.client_email,
     privateKey: serviceAccount.private_key
   };
+  return firebaseConfig;
 }
 
 export const config = {
@@ -63,5 +72,7 @@ export const config = {
   voteChannelId: process.env.VOTE_CHANNEL_ID,
   enableWelcomeMessages: process.env.ENABLE_WELCOME_MESSAGES === "true",
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID,
-  firebase: loadFirebaseConfig()
+  get firebase() {
+    return loadFirebaseConfig();
+  }
 };

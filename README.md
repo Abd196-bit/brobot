@@ -44,6 +44,11 @@ A small Discord bot using `discord.js`.
 - `/vote theme:<theme>`: posts a Bros Jam theme vote using the voting period from `vote-period.txt`
 - `/tutorial topic:<topic>`: shows a quick Bros Jam tutorial. Topics are `Overview`, `Theme voting`, `Building`, and `Submitting`
 - `/clear message:<amount>`: deletes up to 100 recent messages from the channel where it is used. Admins only
+- `/server`: shows basic server info
+- `/user member:<member>`: shows user info
+- `/avatar member:<member>`: shows a user's avatar
+- `/coinflip`: flips a coin
+- `/roll sides:<sides> count:<count>`: rolls dice
 - `/help`: lists available commands
 
 Each Discord user can suggest only one theme. Users can still change their vote on a theme as many times as they want; clicking `Aye!`, `Nay!`, or `No opinion.` moves their user ID between those fields.

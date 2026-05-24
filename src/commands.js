@@ -15,6 +15,38 @@ export const voteState = new Map();
 
 const voteButtonPrefix = "bros-jam-vote";
 
+function createUserEmbed(user, member) {
+  const joinedAt = member?.joinedAt
+    ? `<t:${Math.floor(member.joinedAt.getTime() / 1000)}:D>`
+    : "Unknown";
+  const createdAt = `<t:${Math.floor(user.createdAt.getTime() / 1000)}:D>`;
+
+  return new EmbedBuilder()
+    .setColor(0x57f287)
+    .setTitle(user.globalName ?? user.username)
+    .setThumbnail(user.displayAvatarURL({ size: 256 }))
+    .addFields(
+      { name: "Username", value: user.tag, inline: true },
+      { name: "User ID", value: user.id, inline: true },
+      { name: "Account created", value: createdAt, inline: true },
+      { name: "Joined server", value: joinedAt, inline: true }
+    );
+}
+
+function createServerEmbed(guild) {
+  const createdAt = `<t:${Math.floor(guild.createdAt.getTime() / 1000)}:D>`;
+
+  return new EmbedBuilder()
+    .setColor(0x57f287)
+    .setTitle(guild.name)
+    .setThumbnail(guild.iconURL({ size: 256 }))
+    .addFields(
+      { name: "Server ID", value: guild.id, inline: true },
+      { name: "Members", value: guild.memberCount.toString(), inline: true },
+      { name: "Created", value: createdAt, inline: true }
+    );
+}
+
 const tutorialTopics = {
   overview: {
     title: "Bros Jam tutorial",
@@ -217,10 +249,115 @@ export const commands = [
           "`/vote theme:<theme>` - Suggest a Bros Jam theme using the period in vote-period.txt.",
           "`/tutorial topic:<topic>` - Get a quick Bros Jam tutorial.",
           "`/clear message:<amount>` - Delete up to 100 recent messages from this channel. Admins only.",
+          "`/server` - Show basic server info.",
+          "`/user member:<member>` - Show user info.",
+          "`/avatar member:<member>` - Show a user's avatar.",
+          "`/coinflip` - Flip a coin.",
+          "`/roll sides:<sides> count:<count>` - Roll dice.",
           "`/help` - Show this command list."
         ].join("\n"),
         flags: MessageFlags.Ephemeral
       });
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("server")
+      .setDescription("Show basic server info.")
+      .setDMPermission(false),
+    async execute(interaction) {
+      await interaction.reply({
+        embeds: [createServerEmbed(interaction.guild)]
+      });
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("user")
+      .setDescription("Show user info.")
+      .setDMPermission(false)
+      .addUserOption((option) =>
+        option
+          .setName("member")
+          .setDescription("Member to inspect.")
+          .setRequired(false)
+      ),
+    async execute(interaction) {
+      const user = interaction.options.getUser("member") ?? interaction.user;
+      const member = interaction.options.getMember("member") ?? interaction.member;
+
+      await interaction.reply({
+        embeds: [createUserEmbed(user, member)]
+      });
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("avatar")
+      .setDescription("Show a user's avatar.")
+      .setDMPermission(false)
+      .addUserOption((option) =>
+        option
+          .setName("member")
+          .setDescription("Member whose avatar to show.")
+          .setRequired(false)
+      ),
+    async execute(interaction) {
+      const user = interaction.options.getUser("member") ?? interaction.user;
+      const avatarUrl = user.displayAvatarURL({ size: 1024 });
+
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(0x57f287)
+            .setTitle(`${user.globalName ?? user.username}'s avatar`)
+            .setImage(avatarUrl)
+            .setURL(avatarUrl)
+        ]
+      });
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("coinflip")
+      .setDescription("Flip a coin."),
+    async execute(interaction) {
+      const result = Math.random() < 0.5 ? "Heads" : "Tails";
+      await interaction.reply(`🪙 ${result}`);
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("roll")
+      .setDescription("Roll dice.")
+      .addIntegerOption((option) =>
+        option
+          .setName("sides")
+          .setDescription("Number of sides on each die.")
+          .setRequired(false)
+          .setMinValue(2)
+          .setMaxValue(1000)
+      )
+      .addIntegerOption((option) =>
+        option
+          .setName("count")
+          .setDescription("Number of dice to roll.")
+          .setRequired(false)
+          .setMinValue(1)
+          .setMaxValue(20)
+      ),
+    async execute(interaction) {
+      const sides = interaction.options.getInteger("sides") ?? 6;
+      const count = interaction.options.getInteger("count") ?? 1;
+      const rolls = Array.from(
+        { length: count },
+        () => Math.floor(Math.random() * sides) + 1
+      );
+      const total = rolls.reduce((sum, roll) => sum + roll, 0);
+
+      await interaction.reply(
+        `🎲 Rolled ${count}d${sides}: ${rolls.join(", ")}. Total: ${total}`
+      );
     }
   },
   {
