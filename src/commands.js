@@ -4,6 +4,7 @@ import {
   ButtonStyle,
   EmbedBuilder,
   MessageFlags,
+  PermissionFlagsBits,
   SlashCommandBuilder
 } from "discord.js";
 import { config } from "./config.js";
@@ -215,10 +216,64 @@ export const commands = [
           "`/ping` - Check whether the bot is online.",
           "`/vote theme:<theme>` - Suggest a Bros Jam theme using the period in vote-period.txt.",
           "`/tutorial topic:<topic>` - Get a quick Bros Jam tutorial.",
+          "`/clear message:<amount>` - Delete up to 100 recent messages from this channel. Admins only.",
           "`/help` - Show this command list."
         ].join("\n"),
         flags: MessageFlags.Ephemeral
       });
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("clear")
+      .setDescription("Delete recent messages from this channel. Admins only.")
+      .setDMPermission(false)
+      .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+      .addIntegerOption((option) =>
+        option
+          .setName("message")
+          .setDescription("Number of recent messages to delete.")
+          .setRequired(true)
+          .setMinValue(1)
+          .setMaxValue(100)
+      ),
+    async execute(interaction) {
+      if (!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)) {
+        await interaction.reply({
+          content: "Only admins can use `/clear`.",
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
+
+      if (!interaction.appPermissions?.has(PermissionFlagsBits.ManageMessages)) {
+        await interaction.reply({
+          content: "I need the Manage Messages permission in this channel to clear messages.",
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
+
+      if (!interaction.channel || typeof interaction.channel.bulkDelete !== "function") {
+        await interaction.reply({
+          content: "`/clear` can only be used in a server text channel.",
+          flags: MessageFlags.Ephemeral
+        });
+        return;
+      }
+
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+      const amount = interaction.options.getInteger("message", true);
+      const deletedMessages = await interaction.channel.bulkDelete(amount, true);
+      const skipped = amount - deletedMessages.size;
+      const skippedText = skipped > 0
+        ? ` ${skipped} message(s) were skipped because Discord only bulk-deletes recent messages.`
+        : "";
+
+      await interaction.editReply(
+        `Deleted ${deletedMessages.size} message(s) from this channel.${skippedText}`
+      );
     }
   },
   {

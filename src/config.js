@@ -61,6 +61,7 @@ export const config = {
   clientId: process.env.DISCORD_CLIENT_ID,
   guildId: process.env.DISCORD_GUILD_ID,
   voteChannelId: process.env.VOTE_CHANNEL_ID,
+  enableWelcomeMessages: process.env.ENABLE_WELCOME_MESSAGES === "true",
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID,
   firebase: loadFirebaseConfig()
 };

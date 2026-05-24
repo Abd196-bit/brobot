@@ -22,7 +22,8 @@ A small Discord bot using `discord.js`.
    - `DISCORD_CLIENT_ID`: application ID from the Discord Developer Portal
    - `DISCORD_GUILD_ID`: server ID for quick slash-command testing
    - `VOTE_CHANNEL_ID`: channel ID where Bros Jam votes should be posted
-   - `WELCOME_CHANNEL_ID`: channel ID where new member welcome messages should be posted
+   - `ENABLE_WELCOME_MESSAGES`: set to `true` only if you enabled Discord's Server Members Intent
+   - `WELCOME_CHANNEL_ID`: optional channel ID where new member welcome messages should be posted
    - `FIREBASE_SERVICE_ACCOUNT_PATH`: local path to your Firebase service account JSON, usually `firebase-service-account.json`
 
 4. Deploy slash commands to your test server:
@@ -42,6 +43,7 @@ A small Discord bot using `discord.js`.
 - `/ping`: replies with bot latency
 - `/vote theme:<theme>`: posts a Bros Jam theme vote using the voting period from `vote-period.txt`
 - `/tutorial topic:<topic>`: shows a quick Bros Jam tutorial. Topics are `Overview`, `Theme voting`, `Building`, and `Submitting`
+- `/clear message:<amount>`: deletes up to 100 recent messages from the channel where it is used. Admins only
 - `/help`: lists available commands
 
 Each Discord user can suggest only one theme. Users can still change their vote on a theme as many times as they want; clicking `Aye!`, `Nay!`, or `No opinion.` moves their user ID between those fields.
@@ -132,6 +134,7 @@ Use Render as a long-running web service.
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   ENABLE_WELCOME_MESSAGES=false
    WELCOME_CHANNEL_ID=your_welcome_channel_id
    FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
    ```
@@ -184,6 +187,7 @@ Environment variables:
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
+   ENABLE_WELCOME_MESSAGES=false
    WELCOME_CHANNEL_ID=your_welcome_channel_id
    FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
    ```
@@ -203,9 +207,9 @@ Create an application at <https://discord.com/developers/applications>, add a bo
 - `bot`
 - `applications.commands`
 
-For this starter bot, the bot permission integer can be `0` because it only responds to slash commands.
+The bot needs the **Manage Messages** permission for `/clear`.
 
-Enable **Server Members Intent** under the bot's privileged gateway intents so welcome messages can fire when a new member joins.
+Only enable `ENABLE_WELCOME_MESSAGES=true` after enabling **Server Members Intent** under the bot's privileged gateway intents in the Discord Developer Portal. Otherwise Discord rejects the bot with `Used disallowed intents`.
 # brobot
 # brobot
 # brobot

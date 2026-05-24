@@ -3,11 +3,14 @@ import { Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
 import { commandMap, handleVoteButton } from "./commands.js";
 import { config } from "./config.js";
 
+const intents = [GatewayIntentBits.Guilds];
+
+if (config.enableWelcomeMessages) {
+  intents.push(GatewayIntentBits.GuildMembers);
+}
+
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers
-  ]
+  intents
 });
 
 const welcomeMessages = [
@@ -48,6 +51,10 @@ server.listen(port, () => {
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
+  if (!config.enableWelcomeMessages) {
+    return;
+  }
+
   if (!config.welcomeChannelId) {
     return;
   }
