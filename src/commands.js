@@ -14,6 +14,76 @@ export const voteState = new Map();
 
 const voteButtonPrefix = "bros-jam-vote";
 
+const tutorialTopics = {
+  overview: {
+    title: "Bros Jam tutorial",
+    description: [
+      "Bros Jam is a small game jam: pick a theme, build something around it, then share what you made.",
+      "",
+      "**1. Suggest a theme**",
+      "Use `/vote theme:<theme>` to suggest one theme. Each user can suggest one theme.",
+      "",
+      "**2. Vote on themes**",
+      "Click `Aye!`, `Nay!`, or `No opinion.` on theme posts. You can change your vote any time while voting is open.",
+      "",
+      "**3. Build your entry**",
+      "When the jam starts, make a game, prototype, tool, or experiment inspired by the chosen theme.",
+      "",
+      "**4. Submit and share**",
+      "Post your finished entry with a playable link, screenshots, and a short description."
+    ].join("\n")
+  },
+  voting: {
+    title: "Theme voting tutorial",
+    description: [
+      "Use `/vote theme:<theme>` to suggest a Bros Jam theme.",
+      "",
+      "Rules:",
+      "- Each Discord user can suggest one theme.",
+      "- Voting only counts during the period set in `vote-period.txt`.",
+      "- Clicking a vote button moves your vote instead of adding duplicate votes.",
+      "- `Aye!` means you like the theme, `Nay!` means you do not, and `No opinion.` means you are neutral."
+    ].join("\n")
+  },
+  building: {
+    title: "Building for the jam",
+    description: [
+      "Keep your scope small enough to finish.",
+      "",
+      "A solid jam plan:",
+      "- Pick one core mechanic.",
+      "- Make a playable version early.",
+      "- Add art, sound, polish, and extra features after the core loop works.",
+      "- Test the final build before submitting it.",
+      "",
+      "The goal is a finished playable entry, not a perfect one."
+    ].join("\n")
+  },
+  submitting: {
+    title: "Submitting your jam entry",
+    description: [
+      "When your entry is ready, share it in the jam channel.",
+      "",
+      "Include:",
+      "- Entry title",
+      "- Playable link or download link",
+      "- Short description",
+      "- Controls",
+      "- Team members, if any",
+      "- Screenshots or a short clip, if you have them"
+    ].join("\n")
+  }
+};
+
+function createTutorialEmbed(topic) {
+  const tutorial = tutorialTopics[topic] ?? tutorialTopics.overview;
+
+  return new EmbedBuilder()
+    .setColor(0x5865f2)
+    .setTitle(tutorial.title)
+    .setDescription(tutorial.description);
+}
+
 function createVoteEmbed(vote) {
   const lines = [`Suggested by ${vote.suggestedBy} • ${vote.createdAt}`];
 
@@ -144,8 +214,34 @@ export const commands = [
           "**Available commands**",
           "`/ping` - Check whether the bot is online.",
           "`/vote theme:<theme>` - Suggest a Bros Jam theme using the period in vote-period.txt.",
+          "`/tutorial topic:<topic>` - Get a quick Bros Jam tutorial.",
           "`/help` - Show this command list."
         ].join("\n"),
+        flags: MessageFlags.Ephemeral
+      });
+    }
+  },
+  {
+    data: new SlashCommandBuilder()
+      .setName("tutorial")
+      .setDescription("Get a Bros Jam tutorial.")
+      .addStringOption((option) =>
+        option
+          .setName("topic")
+          .setDescription("Tutorial topic to show.")
+          .setRequired(false)
+          .addChoices(
+            { name: "Overview", value: "overview" },
+            { name: "Theme voting", value: "voting" },
+            { name: "Building", value: "building" },
+            { name: "Submitting", value: "submitting" }
+          )
+      ),
+    async execute(interaction) {
+      const topic = interaction.options.getString("topic") ?? "overview";
+
+      await interaction.reply({
+        embeds: [createTutorialEmbed(topic)],
         flags: MessageFlags.Ephemeral
       });
     }

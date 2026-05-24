@@ -6,8 +6,7 @@ const requiredEnv = [
   "DISCORD_TOKEN",
   "DISCORD_CLIENT_ID",
   "DISCORD_GUILD_ID",
-  "VOTE_CHANNEL_ID",
-  "WELCOME_CHANNEL_ID"
+  "VOTE_CHANNEL_ID"
 ];
 
 for (const name of requiredEnv) {

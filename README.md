@@ -41,6 +41,7 @@ A small Discord bot using `discord.js`.
 
 - `/ping`: replies with bot latency
 - `/vote theme:<theme>`: posts a Bros Jam theme vote using the voting period from `vote-period.txt`
+- `/tutorial topic:<topic>`: shows a quick Bros Jam tutorial. Topics are `Overview`, `Theme voting`, `Building`, and `Submitting`
 - `/help`: lists available commands
 
 Each Discord user can suggest only one theme. Users can still change their vote on a theme as many times as they want; clicking `Aye!`, `Nay!`, or `No opinion.` moves their user ID between those fields.

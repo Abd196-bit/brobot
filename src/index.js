@@ -48,6 +48,10 @@ server.listen(port, () => {
 });
 
 client.on(Events.GuildMemberAdd, async (member) => {
+  if (!config.welcomeChannelId) {
+    return;
+  }
+
   if (member.guild.id !== config.guildId) {
     return;
   }
