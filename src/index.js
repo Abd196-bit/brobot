@@ -1,28 +1,22 @@
 import http from "node:http";
-import { handleVoteButton, commandMap } from "./commands.js";
+import { Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
+import { startBackgroundMusic } from "./background-music.js";
+import { commandMap, handleVoteButton } from "./commands.js";
+import { config } from "./config.js";
 
-// Mock interaction object so your existing commands.js functions still work without breaking
-function createMockInteraction(reqBody) {
-  return {
-    commandName: reqBody.commandName,
-    customId: reqBody.customId,
-    options: {
-      get: (key) => reqBody.options?.[key] || null,
-      getString: (key) => reqBody.options?.[key] || null,
-      getInteger: (key) => reqBody.options?.[key] || null,
-      getMember: (key) => reqBody.options?.[key] || null,
-    },
-    user: { id: reqBody.userId, username: reqBody.username },
-    member: { id: reqBody.userId },
-    guild: { id: reqBody.guildId },
-    isButton: () => !!reqBody.customId,
-    isChatInputCommand: () => !!reqBody.commandName,
-    deferred: false,
-    replied: false,
-    reply: async (data) => { return data; },
-    followUp: async (data) => { return data; }
-  };
+const intents = [GatewayIntentBits.Guilds];
+
+if (config.enableWelcomeMessages) {
+  intents.push(GatewayIntentBits.GuildMembers);
 }
+
+if (config.musicVoiceChannelId) {
+  intents.push(GatewayIntentBits.GuildVoiceStates);
+}
+
+const client = new Client({
+  intents
+});
 
 const welcomeMessages = [
   "hi {user}, hope you brought pizza.",
@@ -32,66 +26,119 @@ const welcomeMessages = [
   "hi {user}, grab a seat and pretend you know what's going on."
 ];
 
-const server = http.createServer(async (request, response) => {
-  // 1. Health check route for Render monitoring
+function createWelcomeMessage(member) {
+  const message = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+  return message.replace("{user}", `<@${member.id}>`);
+}
+
+client.once(Events.ClientReady, async (readyClient) => {
+  console.log(`Logged in as ${readyClient.user.tag}`);
+
+  try {
+    await startBackgroundMusic(readyClient);
+  } catch (error) {
+    console.error("Failed to start background music:", error);
+  }
+});
+
+const server = http.createServer((request, response) => {
   if (request.url === "/health") {
     response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ ok: true, uptime: process.uptime() }));
+    response.end(JSON.stringify({
+      ok: true,
+      botReady: client.isReady(),
+      uptime: process.uptime()
+    }));
     return;
   }
 
-  // 2. Endpoint for Welcome Messages module
-  if (request.url === "/api/welcome" && request.method === "POST") {
-    let body = "";
-    for await (const chunk of request) body += chunk;
-    const data = JSON.parse(body);
-
-    const message = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-    const cleanMessage = message.replace("{user}", `<@${data.userId}>`);
-
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ content: cleanMessage }));
-    return;
-  }
-
-  // 3. Endpoint for BotGhost Slash Commands & Interactive Buttons
-  if (request.url === "/api/interaction" && request.method === "POST") {
-    let body = "";
-    for await (const chunk of request) body += chunk;
-    const reqData = JSON.parse(body);
-
-    const mockInteraction = createMockInteraction(reqData);
-    let executionResult = { content: "Action executed successfully." };
-
-    try {
-      if (mockInteraction.isButton()) {
-        // Run your existing button handler logic
-        await handleVoteButton(mockInteraction);
-      } else if (mockInteraction.isChatInputCommand()) {
-        const command = commandMap.get(mockInteraction.commandName);
-        if (command) {
-          // Run your existing command logic (Firebase saves occur inside command.execute)
-          await command.execute(mockInteraction);
-        } else {
-          executionResult = { content: "Unknown command on local engine." };
-        }
-      }
-    } catch (error) {
-      console.error("Backend processing error:", error);
-      executionResult = { content: "Something went wrong inside the JS backend processing script." };
-    }
-
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify(executionResult));
-    return;
-  }
-
-  // Default Fallback Route
-  response.writeHead(404, { "Content-Type": "text/plain" });
-  response.end("Route not found.");
+  response.writeHead(200, { "Content-Type": "text/plain" });
+  response.end("Bro Bot is running.");
 });
 
 const port = process.env.PORT ?? 3000;
 server.listen(port, () => {
-  console.log(`Bro Bot API Engine active on port ${port}`);
+  console.log(`Health server listening on port ${port}`);
 });
+
+client.on(Events.GuildMemberAdd, async (member) => {
+  if (!config.enableWelcomeMessages) {
+    return;
+  }
+
+  if (!config.welcomeChannelId) {
+    return;
+  }
+
+  if (member.guild.id !== config.guildId) {
+    return;
+  }
+
+  try {
+    const channel = await client.channels.fetch(config.welcomeChannelId);
+
+    if (!channel?.isTextBased()) {
+      console.error(`Welcome channel ${config.welcomeChannelId} is not a text channel or could not be found.`);
+      return;
+    }
+
+    await channel.send(createWelcomeMessage(member));
+  } catch (error) {
+    console.error(`Error while sending welcome message for ${member.id}:`, error);
+  }
+});
+
+client.on(Events.InteractionCreate, async (interaction) => {
+  if (interaction.isButton()) {
+    try {
+      await handleVoteButton(interaction);
+    } catch (error) {
+      console.error(`Error while handling button ${interaction.customId}:`, error);
+
+      const response = {
+        content: "Something went wrong while recording that vote.",
+        flags: MessageFlags.Ephemeral
+      };
+
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(response);
+      } else {
+        await interaction.reply(response);
+      }
+    }
+    return;
+  }
+
+  if (!interaction.isChatInputCommand()) {
+    return;
+  }
+
+  const command = commandMap.get(interaction.commandName);
+
+  if (!command) {
+    await interaction.reply({
+      content: "Unknown command.",
+      flags: MessageFlags.Ephemeral
+    });
+    return;
+  }
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(`Error while running /${interaction.commandName}:`, error);
+
+    const response = {
+      content: "Something went wrong while running that command.",
+      flags: MessageFlags.Ephemeral
+    };
+
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp(response);
+    } else {
+      await interaction.reply(response);
+    }
+  }
+});
+
+client.login(config.token);
