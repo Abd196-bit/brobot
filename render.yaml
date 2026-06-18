@@ -10,6 +10,8 @@ services:
     envVars:
       - key: DISCORD_TOKEN
         sync: false
+      - key: DISCORD_PUBLIC_KEY
+        sync: false
       - key: DISCORD_CLIENT_ID
         sync: false
       - key: DISCORD_GUILD_ID

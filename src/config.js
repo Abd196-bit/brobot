@@ -67,6 +67,7 @@ function loadFirebaseConfig() {
 
 export const config = {
   token: process.env.DISCORD_TOKEN,
+  publicKey: process.env.DISCORD_PUBLIC_KEY,
   clientId: process.env.DISCORD_CLIENT_ID,
   guildId: process.env.DISCORD_GUILD_ID,
   voteChannelId: process.env.VOTE_CHANNEL_ID,

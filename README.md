@@ -19,6 +19,7 @@ A small Discord bot using `discord.js`.
 3. Fill in `.env`:
 
    - `DISCORD_TOKEN`: bot token from the Discord Developer Portal
+   - `DISCORD_PUBLIC_KEY`: application public key from the Discord Developer Portal, required for the `/interactions` wake endpoint
    - `DISCORD_CLIENT_ID`: application ID from the Discord Developer Portal
    - `DISCORD_GUILD_ID`: server ID for quick slash-command testing
    - `VOTE_CHANNEL_ID`: channel ID where Bros Jam votes should be posted
@@ -154,6 +155,7 @@ Use Render as a long-running web service.
 
    ```env
    DISCORD_TOKEN=your_new_regenerated_token
+   DISCORD_PUBLIC_KEY=your_application_public_key
    DISCORD_CLIENT_ID=1506997342518378677
    DISCORD_GUILD_ID=1506892029039345815
    VOTE_CHANNEL_ID=1507009214416162977
@@ -205,6 +207,28 @@ Render settings if creating the service manually:
 The bot serves `/health` so Render can keep track of the running service.
 
 Use a paid always-on Render plan if you want the bot online 24/7. Free web services can sleep.
+
+### Render Wake on Slash Commands
+
+Render free services can wake only from HTTP traffic. The bot exposes a Discord Interactions webhook for that:
+
+```text
+https://<your-render-service>.onrender.com/interactions
+```
+
+Set that URL in the Discord Developer Portal:
+
+```text
+Application -> General Information -> Interactions Endpoint URL
+```
+
+Then copy the application's **Public Key** into Render as:
+
+```env
+DISCORD_PUBLIC_KEY=your_application_public_key
+```
+
+When a slash command is used while Render is asleep, Discord sends an HTTP request to `/interactions`, which wakes the service. The first command after a long sleep can still fail if Render's cold start takes longer than Discord's interaction timeout, but the service should be awake for the next command.
 
 ## Cloudflare Containers Hosting
 

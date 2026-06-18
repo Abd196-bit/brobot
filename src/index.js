@@ -3,6 +3,10 @@ import { Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
 import { startBackgroundMusic } from "./background-music.js";
 import { commandMap, handleVoteButton } from "./commands.js";
 import { config } from "./config.js";
+import {
+  handleDiscordInteraction,
+  verifyDiscordInteractionRequest
+} from "./http-interactions.js";
 
 const intents = [GatewayIntentBits.Guilds];
 
@@ -41,14 +45,46 @@ client.once(Events.ClientReady, async (readyClient) => {
   }
 });
 
-const server = http.createServer((request, response) => {
+async function readRequestBody(request) {
+  let body = "";
+
+  for await (const chunk of request) {
+    body += chunk;
+  }
+
+  return body;
+}
+
+function sendJson(response, statusCode, data) {
+  response.writeHead(statusCode, { "Content-Type": "application/json" });
+  response.end(JSON.stringify(data));
+}
+
+const server = http.createServer(async (request, response) => {
   if (request.url === "/health") {
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({
+    sendJson(response, 200, {
       ok: true,
       botReady: client.isReady(),
       uptime: process.uptime()
-    }));
+    });
+    return;
+  }
+
+  if (request.url === "/interactions" && request.method === "POST") {
+    try {
+      const rawBody = await readRequestBody(request);
+
+      if (!verifyDiscordInteractionRequest(request, rawBody)) {
+        sendJson(response, 401, { error: "Invalid request signature." });
+        return;
+      }
+
+      const interactionResponse = await handleDiscordInteraction(JSON.parse(rawBody), client);
+      sendJson(response, 200, interactionResponse);
+    } catch (error) {
+      console.error("Failed to handle Discord interaction webhook:", error);
+      sendJson(response, 500, { error: "Interaction handling failed." });
+    }
     return;
   }
 
