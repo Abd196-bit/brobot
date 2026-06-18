@@ -206,6 +206,68 @@ The bot serves `/health` so Render can keep track of the running service.
 
 Use a paid always-on Render plan if you want the bot online 24/7. Free web services can sleep.
 
+## Cloudflare Containers Hosting
+
+Do not deploy this bot to plain Cloudflare Workers or Pages. This bot needs a long-running Node process for the Discord gateway connection, and voice playback also needs a full Node/container runtime. Cloudflare support is configured through Cloudflare Containers:
+
+- `Dockerfile` packages the Node bot.
+- `wrangler.toml` deploys one container-backed Worker.
+- `src/cloudflare-worker.js` routes requests to the bot container.
+- A cron trigger calls `/health` every 15 minutes to keep the single bot container active.
+
+Cloudflare Containers require a Workers Paid plan.
+
+1. Log in to Cloudflare:
+
+   ```bash
+   npx wrangler login
+   ```
+
+2. Set the required secrets:
+
+   ```bash
+   npx wrangler secret put DISCORD_TOKEN
+   npx wrangler secret put DISCORD_CLIENT_ID
+   npx wrangler secret put DISCORD_GUILD_ID
+   npx wrangler secret put VOTE_CHANNEL_ID
+   npx wrangler secret put FIREBASE_SERVICE_ACCOUNT_JSON
+   ```
+
+   Or use the separate Firebase fields instead of `FIREBASE_SERVICE_ACCOUNT_JSON`:
+
+   ```bash
+   npx wrangler secret put FIREBASE_PROJECT_ID
+   npx wrangler secret put FIREBASE_CLIENT_EMAIL
+   npx wrangler secret put FIREBASE_PRIVATE_KEY
+   ```
+
+   Optional secrets:
+
+   ```bash
+   npx wrangler secret put WELCOME_CHANNEL_ID
+   npx wrangler secret put MUSIC_VOICE_CHANNEL_ID
+   ```
+
+3. Deploy the Worker and container:
+
+   ```bash
+   npm run cf:deploy
+   ```
+
+4. Start the container after deploy:
+
+   ```bash
+   curl -X POST https://bro-bot.<your-workers-subdomain>.workers.dev/start
+   ```
+
+5. Check health:
+
+   ```bash
+   curl https://bro-bot.<your-workers-subdomain>.workers.dev/health
+   ```
+
+If the container is stopped by Cloudflare, call `/start` again. The scheduled health check keeps the selected container instance warm while the deployment is active, but this is still a serverless container platform rather than a traditional VPS.
+
 Environment variables:
 
    ```env

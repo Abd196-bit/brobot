@@ -9,7 +9,9 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "deploy": "node src/deploy-commands.js"
+    "deploy": "node src/deploy-commands.js",
+    "cf:dev": "wrangler dev",
+    "cf:deploy": "wrangler deploy"
   },
   "keywords": [
     "discord",
@@ -26,5 +28,9 @@
     "firebase-admin": "^13.10.0",
     "opusscript": "^0.0.8",
     "prism-media": "^1.3.5"
+  },
+  "devDependencies": {
+    "@cloudflare/containers": "^0.3.7",
+    "wrangler": "^4.101.0"
   }
 }

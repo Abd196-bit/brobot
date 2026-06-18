@@ -1,0 +1,23 @@
+name = "bro-bot"
+main = "src/cloudflare-worker.js"
+compatibility_date = "2026-06-18"
+
+[[containers]]
+class_name = "BroBotContainer"
+image = "./Dockerfile"
+max_instances = 1
+
+[[durable_objects.bindings]]
+name = "BRO_BOT_CONTAINER"
+class_name = "BroBotContainer"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BroBotContainer"]
+
+[triggers]
+crons = ["*/15 * * * *"]
+
+[vars]
+ENABLE_WELCOME_MESSAGES = "false"
+MUSIC_VOLUME = "0.5"
