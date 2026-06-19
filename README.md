@@ -140,6 +140,22 @@ For Render, use environment variables instead of uploading a JSON file:
 - Recommended: paste the entire downloaded service account JSON into `FIREBASE_SERVICE_ACCOUNT_JSON`.
 - Alternative: set `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY` separately.
 
+## HeavenCloud Hosting
+
+This bot can run on HeavenCloud's Node.js Discord bot hosting.
+
+Use these settings in the HeavenCloud panel:
+
+- Runtime/language: **Node.js**
+- Install/build command: `npm ci`
+- Start command: `npm start`
+- Main file, if asked: `index.js`
+- Health check path, if available: `/health`
+
+Set the same environment variables listed in `.env.example`. For Firebase on HeavenCloud, prefer `FIREBASE_SERVICE_ACCOUNT_JSON` instead of uploading a service-account file.
+
+For the full checklist, see [HEAVENCLOUD.md](/Users/folder1/Desktop/bro bot/HEAVENCLOUD.md).
+
 ## Render Hosting
 
 Do not host this gateway bot on Vercel. Vercel serverless functions stop after handling requests, but this bot must keep a Discord WebSocket connection open.

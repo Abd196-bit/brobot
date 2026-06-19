@@ -2,13 +2,13 @@
   "name": "bro-bot",
   "version": "1.0.0",
   "description": "A simple Discord bot built with discord.js.",
-  "main": "src/index.js",
+  "main": "index.js",
   "type": "module",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node index.js",
     "deploy": "node src/deploy-commands.js",
     "cf:dev": "wrangler dev",
     "cf:deploy": "wrangler deploy"

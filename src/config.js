@@ -74,8 +74,9 @@ export const config = {
   enableWelcomeMessages: process.env.ENABLE_WELCOME_MESSAGES === "true",
   welcomeChannelId: process.env.WELCOME_CHANNEL_ID,
   musicVoiceChannelId: process.env.MUSIC_VOICE_CHANNEL_ID,
-  musicFilePath: path.join(process.cwd(), "My Ordinary Life-The Living Tombstone.mp3"),
-  musicVolume: 0.5,
+  musicFilePath: process.env.MUSIC_FILE_PATH ??
+    path.join(process.cwd(), "My Ordinary Life-The Living Tombstone.mp3"),
+  musicVolume: Number.parseFloat(process.env.MUSIC_VOLUME ?? "0.5"),
   get firebase() {
     return loadFirebaseConfig();
   }
